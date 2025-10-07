@@ -1,0 +1,161 @@
+{% extends "base.html" %}
+
+{% block title %}報表{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <h1 class="text-2xl font-bold text-gray-900">報表與匯出</h1>
+
+    <!-- 日期範圍篩選 -->
+    <div class="bg-white shadow rounded-lg p-6">
+        <form method="GET" action="{{ url_for('reports.index') }}" class="space-y-4">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">日期範圍</label>
+                    <select name="preset" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm px-3 py-2 border">
+                        <option value="this_month" {% if preset == 'this_month' %}selected{% endif %}>本月</option>
+                        <option value="last_month" {% if preset == 'last_month' %}selected{% endif %}>上月</option>
+                        <option value="this_week" {% if preset == 'this_week' %}selected{% endif %}>本週</option>
+                        <option value="today" {% if preset == 'today' %}selected{% endif %}>今天</option>
+                        <option value="custom" {% if preset == 'custom' %}selected{% endif %}>自訂</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">開始日期</label>
+                    <input type="date" name="start_date" value="{{ start_date or '' }}"
+                           class="mt-1 block w-full rounded-md border-gray-300 shadow-sm px-3 py-2 border">
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">結束日期</label>
+                    <input type="date" name="end_date" value="{{ end_date or '' }}"
+                           class="mt-1 block w-full rounded-md border-gray-300 shadow-sm px-3 py-2 border">
+                </div>
+            </div>
+
+            <button type="submit" class="bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700 font-medium">
+                更新報表
+            </button>
+        </form>
+    </div>
+
+    <!-- 圖表區 -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <!-- 圓餅圖：分類占比 -->
+        <div class="bg-white shadow rounded-lg p-6">
+            <h3 class="text-lg font-semibold text-gray-700 mb-4">分類支出占比</h3>
+            <canvas id="pieChart"></canvas>
+        </div>
+
+        <!-- 長條圖：月度支出 -->
+        <div class="bg-white shadow rounded-lg p-6">
+            <h3 class="text-lg font-semibold text-gray-700 mb-4">月度支出趨勢</h3>
+            <canvas id="barChart"></canvas>
+        </div>
+    </div>
+
+    <!-- 折線圖：累積餘額 -->
+    <div class="bg-white shadow rounded-lg p-6">
+        <h3 class="text-lg font-semibold text-gray-700 mb-4">累積餘額走勢</h3>
+        <canvas id="lineChart"></canvas>
+    </div>
+
+    <!-- 匯出區 -->
+    <div class="bg-white shadow rounded-lg p-6">
+        <h3 class="text-lg font-semibold text-gray-700 mb-4">匯出 CSV</h3>
+        <div class="flex space-x-4">
+            <a href="{{ url_for('reports.export', type='expenses', preset=preset, start_date=start_date, end_date=end_date) }}"
+               class="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 font-medium">
+                匯出支出
+            </a>
+            <a href="{{ url_for('reports.export', type='repayments', preset=preset, start_date=start_date, end_date=end_date) }}"
+               class="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 font-medium">
+                匯出還款
+            </a>
+            <a href="{{ url_for('reports.export', type='combined', preset=preset, start_date=start_date, end_date=end_date) }}"
+               class="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 font-medium">
+                匯出合併資料
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // 圓餅圖
+    const pieCtx = document.getElementById('pieChart').getContext('2d');
+    new Chart(pieCtx, {
+        type: 'pie',
+        data: {
+            labels: {{ pie_chart.labels | tojson }},
+            datasets: [{
+                data: {{ pie_chart.data | tojson }},
+                backgroundColor: [
+                    'rgba(255, 99, 132, 0.8)',
+                    'rgba(54, 162, 235, 0.8)',
+                    'rgba(255, 206, 86, 0.8)',
+                    'rgba(75, 192, 192, 0.8)',
+                    'rgba(153, 102, 255, 0.8)'
+                ]
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    position: 'bottom'
+                }
+            }
+        }
+    });
+
+    // 長條圖
+    const barCtx = document.getElementById('barChart').getContext('2d');
+    new Chart(barCtx, {
+        type: 'bar',
+        data: {
+            labels: {{ bar_chart.labels | tojson }},
+            datasets: [{
+                label: '月度支出',
+                data: {{ bar_chart.data | tojson }},
+                backgroundColor: 'rgba(54, 162, 235, 0.8)'
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+
+    // 折線圖
+    const lineCtx = document.getElementById('lineChart').getContext('2d');
+    new Chart(lineCtx, {
+        type: 'line',
+        data: {
+            labels: {{ line_chart.labels | tojson }},
+            datasets: [{
+                label: '累積餘額',
+                data: {{ line_chart.data | tojson }},
+                borderColor: 'rgba(75, 192, 192, 1)',
+                backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                fill: true,
+                tension: 0.4
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: {
+                    beginAtZero: false
+                }
+            }
+        }
+    });
+</script>
+{% endblock %}

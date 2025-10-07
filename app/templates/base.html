@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}個人記帳系統{% endblock %}</title>
+
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- HTMX -->
+    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+
+    <!-- Chart.js (用於報表頁) -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+    <style>
+        /* 自訂樣式 */
+        .dropdown:hover .dropdown-menu {
+            display: block;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <!-- 導覽列 -->
+    <nav class="bg-white shadow-sm border-b">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex space-x-8">
+                    <!-- Logo/首頁 -->
+                    <a href="{{ url_for('home.index') }}" class="flex items-center px-2 py-2 text-gray-900 font-semibold hover:text-blue-600">
+                        首頁
+                    </a>
+
+                    <!-- 支出下拉選單 -->
+                    <div class="relative dropdown">
+                        <button class="flex items-center px-2 py-2 text-gray-700 hover:text-blue-600 h-full">
+                            支出 ▼
+                        </button>
+                        <div class="dropdown-menu hidden absolute left-0 mt-0 w-48 bg-white shadow-lg rounded-md border z-10">
+                            <a href="{{ url_for('expenses.index') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">全部支出</a>
+                            <a href="{{ url_for('expenses.index', category_name='網路/電話') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">網路/電話</a>
+                            <a href="{{ url_for('expenses.index', category_name='交通') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">交通</a>
+                            <a href="{{ url_for('expenses.index', category_name='伙食') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">伙食</a>
+                            <a href="{{ url_for('expenses.index', category_name='家庭日用品') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">家庭日用品</a>
+                            <a href="{{ url_for('expenses.index', category_name='生活用品') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">生活用品</a>
+                        </div>
+                    </div>
+
+                    <!-- 還款 -->
+                    <a href="{{ url_for('repayments.index') }}" class="flex items-center px-2 py-2 text-gray-700 hover:text-blue-600">
+                        還款
+                    </a>
+
+                    <!-- 報表 -->
+                    <a href="{{ url_for('reports.index') }}" class="flex items-center px-2 py-2 text-gray-700 hover:text-blue-600">
+                        報表
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Flash 訊息 -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-4">
+                {% for category, message in messages %}
+                    <div class="rounded-md p-4 mb-4 {% if category == 'error' %}bg-red-50 text-red-800{% else %}bg-green-50 text-green-800{% endif %}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    {% endwith %}
+
+    <!-- 主要內容 -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- 共用 JavaScript -->
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+
+    {% block extra_js %}{% endblock %}
+</body>
+</html>
