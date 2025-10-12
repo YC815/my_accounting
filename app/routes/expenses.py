@@ -22,9 +22,15 @@ def get_date_range(preset):
         start = today - timedelta(days=today.weekday())
         return start, today
     elif preset == 'this_month':
-        # 本月 1 日到今天
+        # 本月 1 日到月底
         start = today.replace(day=1)
-        return start, today
+        # 計算月底
+        if today.month == 12:
+            end = today.replace(day=31)
+        else:
+            next_month = today.replace(month=today.month + 1, day=1)
+            end = next_month - timedelta(days=1)
+        return start, end
     elif preset == 'last_month':
         # 上月 1 日到月底
         first_of_month = today.replace(day=1)
@@ -41,15 +47,14 @@ def index():
     db = Session()
 
     try:
+        from datetime import date
+
         # 篩選參數
         category_id = request.args.get('category_id')
         category_name = request.args.get('category_name')
-        search = request.args.get('search', '').strip()
         preset = request.args.get('preset', '')
-        start_date = request.args.get('start_date')
-        end_date = request.args.get('end_date')
-        min_amount = request.args.get('min_amount')
-        max_amount = request.args.get('max_amount')
+        year = request.args.get('year')
+        month = request.args.get('month')
         page = int(request.args.get('page', 1))
 
         # 建立查詢
@@ -61,26 +66,24 @@ def index():
         elif category_name:
             query = query.filter(Category.name == CategoryEnum(category_name))
 
-        # 名稱搜尋
-        if search:
-            query = query.filter(Expense.name.ilike(f'%{search}%'))
-
-        # 日期篩選
-        if preset and preset != 'custom':
+        # 日期篩選：自訂月份優先
+        date_start, date_end = None, None
+        if year and month:
+            try:
+                y, m = int(year), int(month)
+                date_start = date(y, m, 1)
+                # 計算該月最後一天
+                if m == 12:
+                    date_end = date(y, 12, 31)
+                else:
+                    date_end = date(y, m + 1, 1) - timedelta(days=1)
+            except (ValueError, TypeError):
+                pass
+        elif preset:
             date_start, date_end = get_date_range(preset)
-            if date_start and date_end:
-                query = query.filter(Expense.date >= date_start, Expense.date <= date_end)
-        elif start_date or end_date:
-            if start_date:
-                query = query.filter(Expense.date >= start_date)
-            if end_date:
-                query = query.filter(Expense.date <= end_date)
 
-        # 金額範圍
-        if min_amount:
-            query = query.filter(Expense.amount >= Decimal(min_amount))
-        if max_amount:
-            query = query.filter(Expense.amount <= Decimal(max_amount))
+        if date_start and date_end:
+            query = query.filter(Expense.date >= date_start, Expense.date <= date_end)
 
         # 排序：日期新→舊
         query = query.order_by(Expense.date.desc(), Expense.created_at.desc())
@@ -91,8 +94,32 @@ def index():
         total_pages = (total + per_page - 1) // per_page  # 無條件進位
         expenses = query.limit(per_page).offset((page - 1) * per_page).all()
 
-        # 取得所有啟用的類別（用於下拉選單）
+        # 取得所有啟用的類別（用於按鈕導覽）
         categories = db.query(Category).filter(Category.active == True).all()
+
+        # 計算顯示變數
+        today = taipei_today()
+        current_year = today.year
+        current_month = today.month
+
+        # 計算顯示的時間範圍文字
+        if year and month:
+            display_period = f"{year}年 {month}月"
+        elif preset == 'this_month':
+            display_period = f"{current_year}年 {current_month}月"
+        elif preset == 'last_month':
+            first_of_month = today.replace(day=1)
+            last_month_date = first_of_month - timedelta(days=1)
+            display_period = f"{last_month_date.year}年 {last_month_date.month}月"
+        else:
+            display_period = "全部時間"
+
+        # 構建時間參數字串（用於分類按鈕保留時間篩選）
+        time_params = ''
+        if year and month:
+            time_params = f"year={year}&month={month}"
+        elif preset:
+            time_params = f"preset={preset}"
 
         return render_template(
             'expenses.html',
@@ -101,15 +128,17 @@ def index():
             page=page,
             total_pages=total_pages,
             total=total,
-            # 保留篩選條件（用於分頁連結）
+            current_year=current_year,
+            current_month=current_month,
+            display_period=display_period,
+            time_params=time_params,
+            # 保留篩選條件（用於分頁連結和表單）
             filters={
                 'category_id': category_id,
-                'search': search,
+                'category_name': category_name,
                 'preset': preset,
-                'start_date': start_date,
-                'end_date': end_date,
-                'min_amount': min_amount,
-                'max_amount': max_amount
+                'year': year,
+                'month': month
             }
         )
     finally:

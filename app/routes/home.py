@@ -1,11 +1,33 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash
 from sqlalchemy import func
 from decimal import Decimal
+from datetime import timedelta
 
 from app.database import Session
 from app.models import Category, Expense, Repayment, Adjustment, CategoryEnum, taipei_today
 
 bp = Blueprint('home', __name__)
+
+
+def get_date_range(preset, today):
+    """根據預設選項計算日期範圍（複製自 expenses.py）"""
+    if preset == 'this_month':
+        # 本月 1 日到月底
+        start = today.replace(day=1)
+        # 計算月底
+        if today.month == 12:
+            end = today.replace(day=31)
+        else:
+            next_month = today.replace(month=today.month + 1, day=1)
+            end = next_month - timedelta(days=1)
+        return start, end
+    elif preset == 'last_month':
+        # 上月 1 日到月底
+        first_of_month = today.replace(day=1)
+        last_month_end = first_of_month - timedelta(days=1)
+        last_month_start = last_month_end.replace(day=1)
+        return last_month_start, last_month_end
+    return None, None
 
 
 @bp.route('/')
@@ -14,17 +36,33 @@ def index():
     db = Session()
 
     try:
+        # 讀取時間篩選參數（預設本月）
+        period = request.args.get('period', 'this_month')
+        today = taipei_today()
+
+        # 計算日期範圍
+        date_start, date_end = get_date_range(period, today)
+
         # 計算總額 = Σ支出 - Σ還款 + Σ調整
         total_expenses = db.query(func.sum(Expense.amount)).scalar() or Decimal('0')
         total_repayments = db.query(func.sum(Repayment.amount)).scalar() or Decimal('0')
         total_adjustments = db.query(func.sum(Adjustment.amount)).scalar() or Decimal('0')
         balance = total_expenses - total_repayments + total_adjustments
 
-        # 5 張摘要卡：各類別加總
-        category_summaries = db.query(
+        # 5 張摘要卡：各類別加總（加上日期篩選）
+        summary_query = db.query(
             Category.name,
             func.sum(Expense.amount).label('total')
-        ).join(Expense).filter(Category.active == True).group_by(Category.name).all()
+        ).join(Expense).filter(Category.active == True)
+
+        # 加上日期範圍篩選
+        if date_start and date_end:
+            summary_query = summary_query.filter(
+                Expense.date >= date_start,
+                Expense.date <= date_end
+            )
+
+        category_summaries = summary_query.group_by(Category.name).all()
 
         # 轉換為字典 {類別名稱: 金額}
         summaries = {cat_name.value: (total or Decimal('0')) for cat_name, total in category_summaries}
@@ -37,12 +75,23 @@ def index():
         # 取得所有啟用的類別（用於下拉選單）
         categories = db.query(Category).filter(Category.active == True).all()
 
+        # 計算顯示的年月
+        if period == 'last_month' and date_start:
+            display_year = date_start.year
+            display_month = date_start.month
+        else:
+            display_year = today.year
+            display_month = today.month
+
         return render_template(
             'home.html',
             balance=balance,
             summaries=summaries,
             categories=categories,
-            today=taipei_today()
+            today=today,
+            period=period,
+            display_year=display_year,
+            display_month=display_month
         )
     finally:
         db.close()
