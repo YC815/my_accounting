@@ -13,10 +13,11 @@ def create_app():
         init_db()
 
     # 註冊路由藍圖
-    from app.routes import home, expenses, repayments, reports
+    from app.routes import home, expenses, repayments, adjustments, reports
     app.register_blueprint(home.bp)
     app.register_blueprint(expenses.bp)
     app.register_blueprint(repayments.bp)
+    app.register_blueprint(adjustments.bp)
     app.register_blueprint(reports.bp)
 
     # 健康檢查端點（容器編排系統需要）
