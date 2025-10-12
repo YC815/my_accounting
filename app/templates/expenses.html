@@ -95,12 +95,11 @@
                 {% for expense in expenses %}
                     <tr>
                         <td class="px-6 py-4 text-center">
-                            <form action="{{ url_for('expenses.toggle_review', expense_id=expense.id) }}" method="POST" class="inline">
-                                <input type="checkbox"
-                                       {% if expense.reviewed %}checked{% endif %}
-                                       onchange="this.form.submit()"
-                                       class="w-5 h-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer">
-                            </form>
+                            <input type="checkbox"
+                                   {% if expense.reviewed %}checked{% endif %}
+                                   hx-post="{{ url_for('expenses.toggle_review', expense_id=expense.id) }}"
+                                   hx-swap="none"
+                                   class="w-5 h-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer">
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ expense.date }}</td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ expense.category.name.value }}</td>
