@@ -1,0 +1,48 @@
+# 虛擬環境
+.venv
+venv
+env
+
+# Python 快取
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.so
+*.egg
+*.egg-info
+dist
+build
+
+# 開發環境檔案
+.env
+.env.local
+.env.*.local
+*.env
+
+# Git
+.git
+.gitignore
+.gitattributes
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+*~
+
+# 測試與文件
+tests
+*.md
+README.md
+.python-version
+
+# MacOS
+.DS_Store
+
+# 資料庫檔案（如果有 SQLite）
+*.db
+*.sqlite
+*.sqlite3
