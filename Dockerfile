@@ -47,15 +47,15 @@ RUN useradd -m -u 1000 appuser && \
 USER appuser
 
 # 暴露端口
-EXPOSE 5001
+EXPOSE 8080
 
 # 健康檢查
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
-    CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:5001/health').read()" || exit 1
+    CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:8080/health').read()" || exit 1
 
 # 啟動指令（生產環境用 Gunicorn）
 CMD ["gunicorn", \
-     "--bind", "0.0.0.0:5001", \
+     "--bind", "0.0.0.0:8080", \
      "--workers", "4", \
      "--worker-class", "sync", \
      "--timeout", "120", \

@@ -24,7 +24,7 @@ docker-compose down
 docker-compose down -v
 ```
 
-訪問: http://localhost:5001
+訪問: http://localhost:8080
 
 ---
 
@@ -39,7 +39,7 @@ docker build -t my-accounting-app:latest .
 # 2. 運行容器（需要外部 PostgreSQL）
 docker run -d \
   --name accounting-app \
-  -p 5001:5001 \
+  -p 8080:8080 \
   -e DATABASE_URL="postgresql://user:pass@host:5432/db" \
   -e SECRET_KEY="your-secret-key-min-32-chars" \
   -e FLASK_ENV="production" \
@@ -145,7 +145,7 @@ gcloud run deploy my-accounting-app \
 |------|------|--------|
 | `FLASK_ENV` | 環境模式 | `production` |
 | `WORKERS` | Gunicorn worker 數量 | `4` |
-| `APP_PORT` | 應用監聽端口 | `5001` |
+| `APP_PORT` | 應用監聽端口 | `8080` |
 
 ---
 
@@ -154,7 +154,7 @@ gcloud run deploy my-accounting-app \
 所有容器編排平台都需要健康檢查端點:
 
 ```bash
-curl http://localhost:5001/health
+curl http://localhost:8080/health
 # 回應: {"status":"healthy"}
 ```
 
