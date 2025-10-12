@@ -50,6 +50,7 @@ class Expense(Base):
     name = Column(String(200), nullable=False, index=True)  # 支出名稱
     amount = Column(Numeric(10, 2), nullable=False)
     date = Column(Date, nullable=False, default=taipei_today, index=True)
+    reviewed = Column(Boolean, nullable=False, default=False, index=True)  # 審核狀態
     created_at = Column(Date, nullable=False, default=taipei_today)
     updated_at = Column(Date, nullable=False, default=taipei_today, onupdate=taipei_today)
 

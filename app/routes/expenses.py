@@ -198,3 +198,25 @@ def delete(expense_id):
         return redirect(url_for('expenses.index'))
     finally:
         db.close()
+
+
+@bp.route('/<uuid:expense_id>/toggle_review', methods=['POST'])
+def toggle_review(expense_id):
+    """切換審核狀態"""
+    db = Session()
+
+    try:
+        expense = db.query(Expense).filter(Expense.id == expense_id).first()
+        if not expense:
+            abort(404)
+
+        expense.reviewed = not expense.reviewed
+        db.commit()
+
+        return '', 204
+
+    except Exception:
+        db.rollback()
+        abort(500)
+    finally:
+        db.close()
