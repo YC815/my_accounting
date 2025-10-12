@@ -81,7 +81,7 @@
         </div>
 
         <table class="min-w-full divide-y divide-gray-200">
-            <thead class="bg-stone-200">
+            <thead class="bg-gray-50">
                 <tr>
                     <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase">記帳進度</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">日期</th>
@@ -93,7 +93,7 @@
             </thead>
             <tbody class="bg-white divide-y divide-gray-200">
                 {% for expense in expenses %}
-                    <tr class="{% if expense.reviewed %}bg-gray-50{% endif %}">
+                    <tr class="{% if expense.reviewed %}bg-stone-200{% endif %}">
                         <td class="px-6 py-4 text-center">
                             <input type="checkbox"
                                    {% if expense.reviewed %}checked{% endif %}
