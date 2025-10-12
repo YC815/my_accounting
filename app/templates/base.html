@@ -32,20 +32,10 @@
                         首頁
                     </a>
 
-                    <!-- 支出下拉選單 -->
-                    <div class="relative dropdown">
-                        <button class="flex items-center px-2 py-2 text-gray-700 hover:text-blue-600 h-full">
-                            支出 ▼
-                        </button>
-                        <div class="dropdown-menu hidden absolute left-0 mt-0 w-48 bg-white shadow-lg rounded-md border z-10">
-                            <a href="{{ url_for('expenses.index') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">全部支出</a>
-                            <a href="{{ url_for('expenses.index', category_name='網路/電話') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">網路/電話</a>
-                            <a href="{{ url_for('expenses.index', category_name='交通') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">交通</a>
-                            <a href="{{ url_for('expenses.index', category_name='伙食') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">伙食</a>
-                            <a href="{{ url_for('expenses.index', category_name='家庭日用品') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">家庭日用品</a>
-                            <a href="{{ url_for('expenses.index', category_name='生活用品') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">生活用品</a>
-                        </div>
-                    </div>
+                    <!-- 支出 -->
+                    <a href="{{ url_for('expenses.index') }}" class="flex items-center px-2 py-2 text-gray-700 hover:text-blue-600">
+                        支出
+                    </a>
 
                     <!-- 還款 -->
                     <a href="{{ url_for('repayments.index') }}" class="flex items-center px-2 py-2 text-gray-700 hover:text-blue-600">
