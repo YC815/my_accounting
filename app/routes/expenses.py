@@ -213,7 +213,7 @@ def toggle_review(expense_id):
         expense.reviewed = not expense.reviewed
         db.commit()
 
-        return '', 204
+        return redirect(request.referrer or url_for('expenses.index'))
 
     except Exception:
         db.rollback()
