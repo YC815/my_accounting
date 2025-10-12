@@ -31,30 +31,31 @@
 
     <!-- 時間篩選按鈕 -->
     <div class="bg-white shadow rounded-lg p-6">
-        <form method="GET" action="{{ url_for('expenses.index') }}" class="flex flex-wrap items-end gap-4">
-            <!-- 保留當前分類參數 -->
-            {% if filters.category_name %}
-                <input type="hidden" name="category_name" value="{{ filters.category_name }}">
-            {% endif %}
+        <!-- 保留當前分類參數 -->
+        {% set category_param = '&category_name=' + filters.category_name if filters.category_name else '' %}
 
-            <!-- 快速時間按鈕 -->
+        <!-- 快速時間按鈕 -->
+        <div class="flex flex-wrap items-end gap-4">
             <div class="flex gap-2">
-                <button type="submit" name="preset" value=""
-                        class="px-4 py-2 rounded-md font-medium transition-colors {% if not filters.preset and not filters.year %}bg-blue-600 text-white{% else %}bg-gray-100 text-gray-700 hover:bg-gray-200{% endif %}">
+                <a href="{{ url_for('expenses.index') }}?{{ category_param[1:] if category_param else '' }}"
+                   class="px-4 py-2 rounded-md font-medium transition-colors {% if not filters.preset and not filters.year %}bg-blue-600 text-white{% else %}bg-gray-100 text-gray-700 hover:bg-gray-200{% endif %}">
                     全部
-                </button>
-                <button type="submit" name="preset" value="this_month"
-                        class="px-4 py-2 rounded-md font-medium transition-colors {% if filters.preset == 'this_month' %}bg-blue-600 text-white{% else %}bg-gray-100 text-gray-700 hover:bg-gray-200{% endif %}">
+                </a>
+                <a href="{{ url_for('expenses.index') }}?preset=this_month{{ category_param }}"
+                   class="px-4 py-2 rounded-md font-medium transition-colors {% if filters.preset == 'this_month' %}bg-blue-600 text-white{% else %}bg-gray-100 text-gray-700 hover:bg-gray-200{% endif %}">
                     本月
-                </button>
-                <button type="submit" name="preset" value="last_month"
-                        class="px-4 py-2 rounded-md font-medium transition-colors {% if filters.preset == 'last_month' %}bg-blue-600 text-white{% else %}bg-gray-100 text-gray-700 hover:bg-gray-200{% endif %}">
+                </a>
+                <a href="{{ url_for('expenses.index') }}?preset=last_month{{ category_param }}"
+                   class="px-4 py-2 rounded-md font-medium transition-colors {% if filters.preset == 'last_month' %}bg-blue-600 text-white{% else %}bg-gray-100 text-gray-700 hover:bg-gray-200{% endif %}">
                     上月
-                </button>
+                </a>
             </div>
 
             <!-- 自訂月份 -->
-            <div class="flex items-center gap-2">
+            <form method="GET" action="{{ url_for('expenses.index') }}" class="flex items-center gap-2">
+                {% if filters.category_name %}
+                    <input type="hidden" name="category_name" value="{{ filters.category_name }}">
+                {% endif %}
                 <label class="text-sm font-medium text-gray-700">自訂：</label>
                 <select name="year" class="rounded-md border-gray-300 shadow-sm px-3 py-2 border">
                     {% for y in range(current_year - 2, current_year + 1) %}
@@ -69,8 +70,8 @@
                 <button type="submit" class="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 font-medium">
                     查詢
                 </button>
-            </div>
-        </form>
+            </form>
+        </div>
     </div>
 
     <!-- 支出列表 -->

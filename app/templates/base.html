@@ -28,27 +28,27 @@
             <div class="flex justify-between h-16">
                 <div class="flex space-x-8">
                     <!-- Logo/首頁 -->
-                    <a href="{{ url_for('home.index') }}" class="flex items-center px-2 py-2 text-gray-900 font-semibold hover:text-blue-600">
+                    <a href="{{ url_for('home.index') }}" class="flex items-center px-2 py-2 {% if request.endpoint == 'home.index' %}text-gray-900 font-semibold{% else %}text-gray-700 hover:text-blue-600{% endif %}">
                         首頁
                     </a>
 
                     <!-- 支出 -->
-                    <a href="{{ url_for('expenses.index') }}" class="flex items-center px-2 py-2 text-gray-700 hover:text-blue-600">
+                    <a href="{{ url_for('expenses.index') }}" class="flex items-center px-2 py-2 {% if request.endpoint and request.endpoint.startswith('expenses.') %}text-gray-900 font-semibold{% else %}text-gray-700 hover:text-blue-600{% endif %}">
                         支出
                     </a>
 
                     <!-- 還款 -->
-                    <a href="{{ url_for('repayments.index') }}" class="flex items-center px-2 py-2 text-gray-700 hover:text-blue-600">
+                    <a href="{{ url_for('repayments.index') }}" class="flex items-center px-2 py-2 {% if request.endpoint and request.endpoint.startswith('repayments.') %}text-gray-900 font-semibold{% else %}text-gray-700 hover:text-blue-600{% endif %}">
                         還款
                     </a>
 
                     <!-- 調整 -->
-                    <a href="{{ url_for('adjustments.index') }}" class="flex items-center px-2 py-2 text-gray-700 hover:text-blue-600">
+                    <a href="{{ url_for('adjustments.index') }}" class="flex items-center px-2 py-2 {% if request.endpoint and request.endpoint.startswith('adjustments.') %}text-gray-900 font-semibold{% else %}text-gray-700 hover:text-blue-600{% endif %}">
                         調整
                     </a>
 
                     <!-- 報表 -->
-                    <a href="{{ url_for('reports.index') }}" class="flex items-center px-2 py-2 text-gray-700 hover:text-blue-600">
+                    <a href="{{ url_for('reports.index') }}" class="flex items-center px-2 py-2 {% if request.endpoint and request.endpoint.startswith('reports.') %}text-gray-900 font-semibold{% else %}text-gray-700 hover:text-blue-600{% endif %}">
                         報表
                     </a>
                 </div>
