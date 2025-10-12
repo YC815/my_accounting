@@ -20,9 +20,9 @@ def taipei_today():
 
 class CategoryEnum(enum.Enum):
     """5 固定類別"""
+    FOOD = "伙食"
     INTERNET_PHONE = "網路/電話"
     TRANSPORT = "交通"
-    FOOD = "伙食"
     HOUSEHOLD = "家庭日用品"
     DAILY_GOODS = "生活用品"
 
@@ -70,3 +70,17 @@ class Repayment(Base):
 
     def __repr__(self):
         return f"<Repayment ${self.amount}>"
+
+
+class Adjustment(Base):
+    __tablename__ = 'adjustments'
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid4)
+    amount = Column(Numeric(10, 2), nullable=False)
+    description = Column(String(200), nullable=False)
+    date = Column(Date, nullable=False, default=taipei_today, index=True)
+    created_at = Column(Date, nullable=False, default=taipei_today)
+    updated_at = Column(Date, nullable=False, default=taipei_today, onupdate=taipei_today)
+
+    def __repr__(self):
+        return f"<Adjustment {self.description} ${self.amount}>"

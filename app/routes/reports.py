@@ -6,7 +6,7 @@ import csv
 from io import StringIO
 
 from app.database import Session
-from app.models import Category, Expense, Repayment, taipei_today
+from app.models import Category, Expense, Repayment, Adjustment, taipei_today
 
 bp = Blueprint('reports', __name__, url_prefix='/reports')
 
@@ -83,14 +83,16 @@ def index():
             'data': [float(total or 0) for year, month, total in bar_data]
         }
 
-        # 3. 折線圖：累積餘額（支出 - 還款）
-        # 取得所有支出與還款，排序後計算累積
+        # 3. 折線圖：累積餘額（支出 - 還款 + 調整）
+        # 取得所有支出、還款、調整，排序後計算累積
         expenses = db.query(Expense.date, Expense.amount).order_by(Expense.date)
         repayments = db.query(Repayment.date, Repayment.amount).order_by(Repayment.date)
+        adjustments = db.query(Adjustment.date, Adjustment.amount).order_by(Adjustment.date)
 
         if date_start and date_end:
             expenses = expenses.filter(Expense.date >= date_start, Expense.date <= date_end)
             repayments = repayments.filter(Repayment.date >= date_start, Repayment.date <= date_end)
+            adjustments = adjustments.filter(Adjustment.date >= date_start, Adjustment.date <= date_end)
 
         # 合併成時間序列
         transactions = []
@@ -98,6 +100,8 @@ def index():
             transactions.append((date, float(amount)))
         for date, amount in repayments.all():
             transactions.append((date, -float(amount)))  # 還款為負
+        for date, amount in adjustments.all():
+            transactions.append((date, float(amount)))  # 調整依正負值
 
         transactions.sort(key=lambda x: x[0])
 
@@ -183,7 +187,7 @@ def export():
 
         else:  # combined
             # 合併匯出
-            writer.writerow(['類型', '日期', '類別', '名稱', '金額'])
+            writer.writerow(['類型', '日期', '類別', '名稱/說明', '金額'])
 
             # 支出
             expenses_query = db.query(Expense).join(Category).order_by(Expense.date.desc())
@@ -192,7 +196,7 @@ def export():
 
             for expense in expenses_query.all():
                 writer.writerow([
-                    'expense',
+                    '支出',
                     expense.date,
                     expense.category.name.value,
                     expense.name,
@@ -206,11 +210,25 @@ def export():
 
             for repayment in repayments_query.all():
                 writer.writerow([
-                    'repayment',
+                    '還款',
                     repayment.date,
                     '',
                     '',
                     repayment.amount
+                ])
+
+            # 調整
+            adjustments_query = db.query(Adjustment).order_by(Adjustment.date.desc())
+            if date_start and date_end:
+                adjustments_query = adjustments_query.filter(Adjustment.date >= date_start, Adjustment.date <= date_end)
+
+            for adjustment in adjustments_query.all():
+                writer.writerow([
+                    '調整',
+                    adjustment.date,
+                    '',
+                    adjustment.description,
+                    adjustment.amount
                 ])
 
             filename = 'combined.csv'
